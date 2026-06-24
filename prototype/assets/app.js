@@ -529,6 +529,7 @@
     return `<header class="topbar">
       <div class="brand"><span class="logo">💰</span><span>${esc(t("appName"))}</span></div>
       <h1>${esc(title)}</h1>
+      <div class="topbar-actions">
       ${(state.view === "dashboard" && state.role !== "Kid" && state.roles && state.roles.length > 1) ? `<div class="role-switch" role="group" aria-label="${esc(t("switchRole"))}" title="${esc(t("switchRole"))}">${state.roles.map(r => `<button class="role-switch-btn ${state.role===r?"active":""}" data-action="switchRole" data-role="${r}" aria-pressed="${state.role===r}">${esc(roleLabel(r))}</button>`).join("")}</div>` : ""}
       ${state.role && state.role !== "Kid" ? `<button class="iconbtn" data-action="setTab" data-tab="notifications" aria-label="Notifications">🔔${unread ? `<span class="badge-dot">${unread}</span>` : ""}</button>` : ""}
       ${state.role && state.role !== "Kid" ? `<button class="iconbtn" data-action="cycleCurrency" aria-label="Switch currency (current: ${state.currency})" title="Currency">${KB.currencies[state.currency].symbol}</button>` : ""}
@@ -536,6 +537,7 @@
       <button class="iconbtn" data-action="toggleTheme" aria-label="Toggle dark mode" title="Theme">${state.theme === "dark" ? "☀️" : "🌙"}</button>
       <button class="iconbtn" data-action="showGuide" aria-label="Open demo guide" title="Demo guide (press ?)">❔</button>
       ${opts.exit ? `<button class="iconbtn" data-action="go" data-view="landing" aria-label="Exit to start">⏏️</button>` : ""}
+      </div>
     </header>`;
   }
 

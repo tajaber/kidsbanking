@@ -75,7 +75,14 @@ button { font-family: inherit; }
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 20;
 }
-.topbar h1 { font-size: 1.05rem; margin: 0; flex: 1; }
+.topbar h1 { font-size: 1.05rem; margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .brand { flex: 0 0 auto; }
+.topbar-actions {
+  display: flex; align-items: center; gap: 8px;
+  margin-inline-start: auto; flex-wrap: wrap; justify-content: flex-end;
+}
+.topbar-actions .iconbtn, .topbar-actions .role-switch { flex: 0 0 auto; }
+.topbar-actions .role-switch { margin-inline-start: 0; }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; }
 .brand .logo {
   width: 30px; height: 30px; border-radius: 9px;
@@ -306,6 +313,14 @@ button { font-family: inherit; }
   .app.web .sidebar { display: none; }
   .app.web .cards { grid-template-columns: repeat(2, 1fr); }
   .app.web .main { padding-bottom: calc(var(--tab-h) + 20px); }
+  /* Compact topbar so utility icons never overflow the mobile shell */
+  .topbar { gap: 7px; padding: 12px; }
+  .topbar .brand span:not(.logo) { display: none; }
+  .topbar h1 { display: none; }
+  .topbar-actions { gap: 6px; }
+  .topbar .iconbtn { width: 34px; height: 34px; font-size: .98rem; border-radius: 10px; }
+  .role-switch { padding: 2px; }
+  .role-switch-btn { font-size: .72rem; padding: 4px 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
