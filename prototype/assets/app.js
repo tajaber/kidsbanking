@@ -402,6 +402,8 @@
     return c.symbol + ((points / 10) * c.ratePer10).toFixed(2);
   }
   function assignerById(id) { return KB.assigners[id]; }
+  // Display name helper — shows the Arabic name when the UI is in Arabic mode.
+  function nm(o) { return o ? (state.lang === "ar" && o.nameAr ? o.nameAr : o.name) : ""; }
   function scope() { return KB.roleScope[state.role] || KB.roleScope.Parent; }
   function scopeLabel() {
     const map = { "Your Kids": "scopeYourKids", "Your Students": "scopeYourStudents", "Assigned Students": "scopeAssignedStudents" };
@@ -439,7 +441,7 @@
   function parentForKid(kidId) {
     const kid = KB.kids[kidId];
     if (kid) {
-      const pid = Object.keys(kid.accounts).find(id => (assignerById(id) || {}).role === "Parent");
+      const pid = Object.keys(kid.accounts).find(id => { const r = (assignerById(id) || {}).role; return r === "Parent" || r === "Co-Parent"; });
       if (pid) return pid;
     }
     return "a_parent";
@@ -461,8 +463,8 @@
   }
   function notifyParentRedemption(rec, event) {
     const parentId = parentForKid(rec.kidId);
-    const kidName = (KB.kids[rec.kidId] || {}).name || rec.kidId;
-    const byName = (assignerById(rec.assignerId) || {}).name || rec.assignerId;
+    const kidName = nm(KB.kids[rec.kidId]) || rec.kidId;
+    const byName = nm(assignerById(rec.assignerId)) || rec.assignerId;
     const key = event === "completed" ? "notifRedeemCompleted" : event === "declined" ? "notifRedeemDeclined" : "notifRedeemInitiated";
     KB.notifications.unshift({
       id: "n" + Date.now(), to: parentId, type: "gift", unread: true, time: t("justNowWord"),
@@ -558,7 +560,7 @@
       <div class="avatar" aria-hidden="true">${tk.category === "School" ? "📚" : tk.category === "Home" ? "🏠" : tk.category === "Learning" ? "🧠" : "⭐"}</div>
       <div class="grow">
         <div class="title">${esc(tk.title)}</div>
-        <div class="sub">${opts.showKid ? esc(kid ? kid.name : "") + " · " : ""}${esc(t("due"))} ${esc(tk.deadline.split(" ")[1])} · ${esc(tk.decay)}</div>
+        <div class="sub">${opts.showKid ? esc(kid ? nm(kid) : "") + " · " : ""}${esc(t("due"))} ${esc(tk.deadline.split(" ")[1])} · ${esc(tk.decay)}</div>
         <div class="btn-row" style="margin-top:8px">
           <span class="badge points">⭐ ${tk.points} pts</span>
           ${roleBadge(a)}
@@ -680,7 +682,7 @@
         ${topbar(tabLabel(state.dashTab), { exit: true })}
         <div class="web-layout">
           <nav class="sidebar" aria-label="Dashboard sections">
-            <div style="padding:6px 14px 12px;font-weight:800">${assignerById(myAssignerId()).avatar} ${esc(assignerById(myAssignerId()).name)}<div class="muted" style="font-size:.75rem;font-weight:400">${esc(roleLabel(state.role))}</div></div>
+            <div style="padding:6px 14px 12px;font-weight:800">${assignerById(myAssignerId()).avatar} ${esc(nm(assignerById(myAssignerId())))}<div class="muted" style="font-size:.75rem;font-weight:400">${esc(roleLabel(state.role))}</div></div>
             ${tabs.map(x => `<button class="nav-item ${state.dashTab===x.id?"active":""}" data-action="setTab" data-tab="${x.id}">
               <span aria-hidden="true">${x.ico}</span> ${esc(x.label)}</button>`).join("")}
             <div style="flex:1"></div>
@@ -733,7 +735,7 @@
       <div class="list">
         ${kidsForRole().map(k => { const tot = kidTotalsForAssigner(k, aid); return `<div class="row">
           <div class="avatar">${k.emoji}</div>
-          <div class="grow"><div class="title">${esc(k.name)}</div>
+          <div class="grow"><div class="title">${esc(nm(k))}</div>
             <div class="sub">${esc(k.grade)} · ${esc(t("acct"))} ${esc(tot.acctNo)}</div></div>
           <div class="center"><div class="badge points">⭐ ${tot.earned}</div><div class="muted" style="font-size:.72rem;margin-top:4px">${money(tot.earned)}</div></div>
         </div>`; }).join("")}
@@ -744,7 +746,7 @@
           .sort((a,b) => b.pts - a.pts)
           .map((row, i) => `<div class="row" style="padding:11px">
             <div class="avatar" style="width:36px;height:36px;font-size:1.05rem">${["🥇","🥈","🥉"][i] || (i+1)+"."}</div>
-            <div class="grow"><div class="title" style="font-size:.92rem">${esc(row.k.name)}</div>
+            <div class="grow"><div class="title" style="font-size:.92rem">${esc(nm(row.k))}</div>
               <div class="sub">🔥 ${esc(t("dayStreak", { n: row.k.streak || 0 }))}</div></div>
             <span class="badge points">⭐ ${row.pts}</span></div>`).join("")}
       </div>
@@ -811,17 +813,17 @@
           const accts = Object.entries(k.accounts).map(([id, a]) => {
             const asg = assignerById(id);
             return `<div class="acct"><span style="font-size:1.2rem">${asg.avatar}</span>
-              <div class="grow"><div style="font-weight:600;font-size:.85rem">${esc(asg.name)} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
+              <div class="grow"><div style="font-weight:600;font-size:.85rem">${esc(nm(asg))} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
               <div class="acct-no">${esc(t("acct"))} ${esc(a.acctNo)} · ⭐ ${a.earned} ${esc(t("earnedWord"))} · ${a.pending} ${esc(t("pendingWord"))}</div></div>
               <div class="badge points">${money(a.earned)}</div></div>`;
           }).join("");
           return `<div class="card" data-search="${esc((k.name + " " + (k.nameAr || "")).toLowerCase())}">
             <div class="row" style="border:none;padding:0">
               <div class="avatar">${k.emoji}</div>
-              <div class="grow"><div class="title">${esc(k.name)}</div><div class="sub">${esc(k.grade)} ${k.loginApproved ? "" : "· " + esc(t("loginPending"))}</div></div>
-              <button class="iconbtn" data-action="showQR" data-kid="${k.id}" aria-label="Generate QR for ${esc(k.name)}">🔳</button>
+              <div class="grow"><div class="title">${esc(nm(k))}</div><div class="sub">${esc(k.grade)} ${k.loginApproved ? "" : "· " + esc(t("loginPending"))}</div></div>
+              <button class="iconbtn" data-action="showQR" data-kid="${k.id}" aria-label="Generate QR for ${esc(nm(k))}">🔳</button>
             </div>
-            <div class="kid-stats" role="group" aria-label="${esc(k.name)} totals">
+            <div class="kid-stats" role="group" aria-label="${esc(nm(k))} totals">
               <div class="kid-stat"><div class="kid-stat-num">⭐ ${mine.earned}</div><div class="kid-stat-label">${esc(t("statEarned"))}</div></div>
               <div class="kid-stat"><div class="kid-stat-num">⏳ ${mine.pending}</div><div class="kid-stat-label">${esc(t("statPending"))}</div></div>
               <div class="kid-stat"><div class="kid-stat-num">${money(mine.earned)}</div><div class="kid-stat-label">${esc(t("statValue"))}</div></div>
@@ -848,14 +850,14 @@
         const rows = Object.entries(k.accounts).map(([id, a]) => {
           const asg = assignerById(id);
           return `<div class="acct"><span style="font-size:1.15rem">${asg.avatar}</span>
-            <div class="grow"><div style="font-weight:600;font-size:.84rem">${esc(asg.name)} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
+            <div class="grow"><div style="font-weight:600;font-size:.84rem">${esc(nm(asg))} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
             <div class="acct-no">${esc(t("acct"))} ${esc(a.acctNo)} · ⭐ ${a.earned} ${esc(t("earnedWord"))} · ⏳ ${a.pending} ${esc(t("pendingWord"))} · 💱 ${a.redeemed} ${esc(t("redeemedWord"))} · ${money(a.earned)}</div></div></div>`;
         }).join("");
         return `<div class="card overview-card">
           <div class="row" style="border:none;padding:0"><div class="avatar">${k.emoji}</div>
-            <div class="grow"><div class="title">${esc(k.name)}</div><div class="sub">${esc(k.grade)}</div></div></div>
+            <div class="grow"><div class="title">${esc(nm(k))}</div><div class="sub">${esc(k.grade)}</div></div></div>
           <div class="acct-grid">${rows}</div>
-          <div class="kid-stats" role="group" aria-label="${esc(k.name)} ${esc(t("grandTotal"))}">
+          <div class="kid-stats" role="group" aria-label="${esc(nm(k))} ${esc(t("grandTotal"))}">
             <div class="kid-stat"><div class="kid-stat-num">⭐ ${gt.earned}</div><div class="kid-stat-label">${esc(t("statEarned"))}</div></div>
             <div class="kid-stat"><div class="kid-stat-num">⏳ ${gt.pending}</div><div class="kid-stat-label">${esc(t("statPending"))}</div></div>
             <div class="kid-stat"><div class="kid-stat-num">💱 ${gt.redeemed}</div><div class="kid-stat-label">${esc(t("redeemedWord"))}</div></div>
@@ -881,7 +883,7 @@
         ${kidsForRole().map(k => { const a = kidTotalsForAssigner(k, aid); return `<div class="card">
           <div class="row" style="border:none;padding:0">
             <div class="avatar">${k.emoji}</div>
-            <div class="grow"><div class="title">${esc(k.name)}</div>
+            <div class="grow"><div class="title">${esc(nm(k))}</div>
               <div class="sub">${esc(t("acct"))} ${esc(a.acctNo)} · ⭐ ${a.earned} ${esc(t("earnedWord"))} · ${a.redeemed} ${esc(t("redeemedWord"))}</div></div>
           </div>
           <div class="row mt" style="background:var(--surface-2)">
@@ -900,8 +902,8 @@
       const kid = KB.kids[r.kidId]; const asg = assignerById(r.assignerId);
       return `<div class="row redemption-row" data-kid="${esc(r.kidId)}">
         <div class="avatar">${kid ? kid.emoji : "🧾"}</div>
-        <div class="grow"><div class="title">${esc(kid ? kid.name : r.kidId)} · ${esc(t("redemptionRow", { n: r.amount, money: r.money }))}</div>
-          <div class="sub">${esc(t("byWord"))} ${esc(asg ? asg.name : r.assignerId)} · ${esc(t("acct"))} ${esc(r.acctNo)} · ${esc(r.ts)}</div></div>
+        <div class="grow"><div class="title">${esc(kid ? nm(kid) : r.kidId)} · ${esc(t("redemptionRow", { n: r.amount, money: r.money }))}</div>
+          <div class="sub">${esc(t("byWord"))} ${esc(asg ? nm(asg) : r.assignerId)} · ${esc(t("acct"))} ${esc(r.acctNo)} · ${esc(r.ts)}</div></div>
         ${redemptionStatusBadge(r.status || "redeemed")}
       </div>`;
     }).join("")}</div>`;
@@ -918,7 +920,7 @@
       const ico = l.event === "completed" ? "✅" : l.event === "declined" ? "↩️" : "🪙";
       return `<div class="row redemption-log-row" data-event="${esc(l.event)}">
         <div class="avatar">${ico}</div>
-        <div class="grow"><div class="title">${esc(t(key, { n: l.amount, money: l.money, kid: kid ? kid.name : l.kidId, by: asg ? asg.name : l.assignerId }))}</div>
+        <div class="grow"><div class="title">${esc(t(key, { n: l.amount, money: l.money, kid: kid ? nm(kid) : l.kidId, by: asg ? nm(asg) : l.assignerId }))}</div>
           <div class="sub">${esc(l.ts)}</div></div>
         ${redemptionStatusBadge(l.event === "completed" ? "redeemed" : l.event === "declined" ? "declined" : "pending_confirmation")}
       </div>`;
@@ -1010,7 +1012,7 @@
 
   // ----- Kid view -----
   function viewKid() {
-    const kid = KB.kids.k_yusuf; // demo kid
+    const kid = KB.kids.k_bisan; // demo kid
     if (state.kidLoginStage !== "approved") return kidOnboarding(kid);
     return `<div class="app">
       ${topbar(t("kidBankTitle", { name: kid.name }), { exit: true })}
@@ -1084,7 +1086,7 @@
           ${pend.map(r => { const asg = assignerById(r.assignerId); return `<div class="row pending-redeem-row" data-id="${esc(r.id)}">
             <div class="avatar">🪙</div>
             <div class="grow"><div class="title">${esc(t("pendingRedeemRow", { n: r.amount, money: r.money }))}</div>
-              <div class="sub">${esc(t("pendingRedeemBy", { by: asg ? asg.name : r.assignerId }))} · ${esc(r.ts)} ${redemptionStatusBadge(r.status)}</div></div>
+              <div class="sub">${esc(t("pendingRedeemBy", { by: asg ? nm(asg) : r.assignerId }))} · ${esc(r.ts)} ${redemptionStatusBadge(r.status)}</div></div>
             <div style="display:flex;flex-direction:column;gap:6px">
               <button class="btn accent sm" data-action="confirmRedemption" data-id="${esc(r.id)}">${esc(t("confirmRedeemBtn"))}</button>
               <button class="btn warn sm" data-action="declineRedemption" data-id="${esc(r.id)}">${esc(t("declineRedeemBtn"))}</button></div>
@@ -1123,7 +1125,7 @@
       <div class="acct-grid">
         ${Object.entries(kid.accounts).map(([id,a]) => { const asg = assignerById(id); return `<div class="acct">
           <span style="font-size:1.3rem">${asg.avatar}</span>
-          <div class="grow"><div style="font-weight:600">${esc(asg.name)} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
+          <div class="grow"><div style="font-weight:600">${esc(nm(asg))} <span class="muted">(${esc(roleLabel(asg.role))})</span></div>
             <div class="acct-no">${esc(t("acct"))} ${esc(a.acctNo)}</div></div>
           <div class="badge points">⭐ ${a.earned}</div></div>`; }).join("")}
       </div>`;
@@ -1131,10 +1133,13 @@
 
   function kidHistory(kid) {
     const tks = tasksForKid(kid.id);
+    const parentName = nm(assignerById(parentForKid(kid.id)));
+    const otherId = Object.keys(kid.accounts).find(id => id !== parentForKid(kid.id));
+    const otherName = otherId ? nm(assignerById(otherId)) : parentName;
     const items = [
-      ...tks.filter(x=>x.status==="completed").map(x=>({ico:"✓",txt:t("earnedTaskHist", { n: x.points, title: x.title }),by:assignerById(x.assignerId).name})),
-      {ico:"🎁",txt:t("bonusGift"),by:"Omar Aziz"},
-      {ico:"💱",txt:t("redeemedReward"),by:"Sara Aziz"}
+      ...tks.filter(x=>x.status==="completed").map(x=>({ico:"✓",txt:t("earnedTaskHist", { n: x.points, title: x.title }),by:nm(assignerById(x.assignerId))})),
+      {ico:"🎁",txt:t("bonusGift"),by:otherName},
+      {ico:"💱",txt:t("redeemedReward"),by:parentName}
     ];
     return `<p class="muted">${esc(t("rewardHistory"))}</p>
       <div class="list">
@@ -1297,7 +1302,7 @@
       case "kidRequest": state.kidLoginStage = "waiting"; render(); break;
       case "kidApproved": state.kidLoginStage = "approved"; state.kidTab = "tasks"; render(); showToast(t("kidWelcome")); break;
       case "kidComplete": kidComplete(D.id); break;
-      case "kidScanNew": openKidScanNew(KB.kids.k_yusuf); break;
+      case "kidScanNew": openKidScanNew(KB.kids.k_bisan); break;
       case "filterStatus": filterStatus(el, D.fs); break;
     }
   });
@@ -1396,7 +1401,7 @@
     tk.status = "completed";
     const acct = KB.kids[tk.kidId].accounts[tk.assignerId];
     if (acct) { acct.earned += tk.points; acct.pending = Math.max(0, acct.pending - tk.points); }
-    render(); showToast(t("approvedPts", { n: tk.points, name: KB.kids[tk.kidId].name }));
+    render(); showToast(t("approvedPts", { n: tk.points, name: nm(KB.kids[tk.kidId]) }));
   }
   function rejectTask(id) {
     const tk = KB.tasks.find(x => x.id === id); if (!tk) return;
@@ -1417,7 +1422,7 @@
             <span class="muted">${esc(t("lateDecayMin"))}</span>
           </div></div>
         <div class="field"><label>${esc(t("assignTo"))}</label>
-          <div class="chips" id="ctKids">${kids.map(k => `<button type="button" class="chip" data-toggle-kid="${k.id}" aria-pressed="false">${k.emoji} ${esc(k.name)}</button>`).join("")}</div>
+          <div class="chips" id="ctKids">${kids.map(k => `<button type="button" class="chip" data-toggle-kid="${k.id}" aria-pressed="false">${k.emoji} ${esc(nm(k))}</button>`).join("")}</div>
           <div class="hint">${esc(t("tapMulti"))}</div></div>
         <div class="btn-row" style="justify-content:flex-end">
           <button type="button" class="btn" data-action="closeModal">${esc(t("cancel"))}</button>
