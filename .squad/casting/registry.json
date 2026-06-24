@@ -1,0 +1,10 @@
+{
+  "agents": {
+    "ocean": { "persistent_name": "Ocean", "role": "Senior Startup Strategist", "universe": "Ocean's Eleven", "created_at": "2026-06-16T18:48:27+03:00", "legacy_named": false, "status": "active" },
+    "ryan": { "persistent_name": "Ryan", "role": "Mobile Product Manager", "universe": "Ocean's Eleven", "created_at": "2026-06-16T18:48:27+03:00", "legacy_named": false, "status": "active" },
+    "dell": { "persistent_name": "Dell", "role": "Solutions Architect", "universe": "Ocean's Eleven", "created_at": "2026-06-16T18:48:27+03:00", "legacy_named": false, "status": "active" },
+    "caldwell": { "persistent_name": "Caldwell", "role": "UX Strategist", "universe": "Ocean's Eleven", "created_at": "2026-06-16T18:48:27+03:00", "legacy_named": false, "status": "active" },
+    "bloom": { "persistent_name": "Bloom", "role": "Go-to-Market Advisor", "universe": "Ocean's Eleven", "created_at": "2026-06-16T18:48:27+03:00", "legacy_named": false, "status": "active" },
+    "linus": { "persistent_name": "Linus", "role": "Frontend Engineer", "universe": "Ocean's Eleven", "created_at": "2026-06-23T23:22:17+03:00", "legacy_named": false, "status": "active" }
+  }
+}

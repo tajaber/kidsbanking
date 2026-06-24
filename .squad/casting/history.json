@@ -1,0 +1,19 @@
+{
+  "universe_usage_history": [
+    { "universe": "Ocean's Eleven", "assigned_at": "2026-06-16T18:48:27+03:00", "assignment_id": "kidsbank-2026-06-16-oceans-eleven" }
+  ],
+  "assignment_cast_snapshots": {
+    "kidsbank-2026-06-16-oceans-eleven": {
+      "universe": "Ocean's Eleven",
+      "created_at": "2026-06-16T18:48:27+03:00",
+      "shape": "specialist crew of five",
+      "cast": {
+        "Ocean": "Senior Startup Strategist",
+        "Ryan": "Mobile Product Manager",
+        "Dell": "Solutions Architect",
+        "Caldwell": "UX Strategist",
+        "Bloom": "Go-to-Market Advisor"
+      }
+    }
+  }
+}
