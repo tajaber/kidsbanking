@@ -7,3 +7,7 @@
 .squad/.cache/
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
+
+# Squad automation workflows (require workflow OAuth scope)
+.github/workflows/squad-*.yml
+.github/workflows/sync-squad-labels.yml
